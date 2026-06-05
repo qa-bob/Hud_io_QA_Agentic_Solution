@@ -1,0 +1,21 @@
+{
+  "name": "hud-io-qa-agentic-solution",
+  "version": "1.0.0",
+  "description": "Playwright end-to-end test suite for hud.io — Page Object Model, TypeScript, GitHub Copilot agentic workflow",
+  "private": true,
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:chromium": "playwright test --project=chromium",
+    "test:firefox": "playwright test --project=firefox",
+    "test:webkit": "playwright test --project=webkit",
+    "test:debug": "playwright test --debug",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.45.0",
+    "@types/node": "^20.0.0",
+    "dotenv": "^16.4.5",
+    "typescript": "^5.4.5"
+  }
+}
