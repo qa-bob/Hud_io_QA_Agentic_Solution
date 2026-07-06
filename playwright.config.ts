@@ -17,8 +17,10 @@ export default defineConfig({
 
   use: {
     // site.config.json is the source of truth for the site under test;
-    // BASE_URL in .env overrides it for local/staging runs.
-    baseURL: process.env.BASE_URL ?? siteConfig.site.baseUrl,
+    // BASE_URL in .env overrides it for local/staging runs. `||` (not `??`) is
+    // deliberate: an empty-string env var (e.g. an unset GitHub Actions secret,
+    // which interpolates to "" rather than being unset) must also fall through.
+    baseURL: process.env.BASE_URL || siteConfig.site.baseUrl,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',

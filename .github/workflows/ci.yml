@@ -28,10 +28,13 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
 
+      # site.config.json supplies the default base URL; no BASE_URL secret is required.
+      # To point CI at a different environment, configure a repo/environment secret named
+      # BASE_URL and add `env: { BASE_URL: ${{ secrets.BASE_URL }} }` back here — do not
+      # reference a secret that may not exist, since an unset secret interpolates to an
+      # empty string (not "unset") and silently breaks every test's navigation.
       - name: Run Playwright tests
         run: npx playwright test
-        env:
-          BASE_URL: ${{ secrets.BASE_URL }}
 
       - name: Upload Playwright HTML report
         uses: actions/upload-artifact@v4
