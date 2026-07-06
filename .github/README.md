@@ -77,7 +77,8 @@ This document explains the purpose and contents of every file and directory in t
 
 | Workflow File | Trigger | Purpose |
 |---|---|---|
-| `ci.yml` | Push / Pull Request | Runs the full Playwright test suite |
+| `ci.yml` | Push / Pull Request | Runs the full Playwright test suite against production (`site.config.json`'s `baseUrl`) |
+| `staging.yml` | Manual (`workflow_dispatch`) | Runs the full suite against a staging environment via the `BASE_URL` repo secret |
 
 **Workflow responsibilities:**
 - Install Node.js and project dependencies
@@ -85,6 +86,12 @@ This document explains the purpose and contents of every file and directory in t
 - Execute `npx playwright test`
 - Upload the Playwright HTML test report as an artifact
 - Report pass/fail status back to the PR
+
+**Running against staging:**
+1. Add a `BASE_URL` repository secret (Settings → Secrets and variables → Actions → New repository secret) pointing at the staging environment.
+2. Go to the Actions tab → "Playwright Tests (Staging)" → Run workflow.
+
+`staging.yml` fails fast with a clear error if `BASE_URL` isn't set, rather than silently testing an empty URL — see the "Testing Constraints" history in `AGENTS.md` for why that check exists. It never runs on push/PR, so it can't affect `ci.yml`'s production-testing pipeline.
 
 **Adding a new workflow:**
 1. Create a new `.yml` file in `.github/workflows/`

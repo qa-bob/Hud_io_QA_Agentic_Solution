@@ -177,9 +177,11 @@ npx playwright show-report
 
 ## CI / Continuous Integration
 
-Tests are run on every pull request via GitHub Actions (`.github/workflows/`). All checks must pass before a PR can be merged. The CI pipeline:
+Tests are run on every pull request via GitHub Actions (`.github/workflows/ci.yml`), against production (`site.config.json`'s `baseUrl`). All checks must pass before a PR can be merged. The pipeline:
 
 1. Installs Node.js dependencies
 2. Installs Playwright browsers
 3. Runs the full test suite
 4. Uploads the Playwright HTML report as an artifact
+
+`.github/workflows/staging.yml` runs the same suite against a staging environment, triggered manually from the Actions tab, using a `BASE_URL` repository secret. It never runs on push/PR — do not add a `BASE_URL` env var to `ci.yml`'s push-triggered job; an unset secret interpolates to an empty string (not "unset") and silently breaks every test's navigation, which is exactly what broke this repo's CI the first time.
