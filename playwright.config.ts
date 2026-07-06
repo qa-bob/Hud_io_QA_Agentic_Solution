@@ -1,5 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 import * as dotenv from 'dotenv';
+import siteConfig from './site.config.json';
 
 dotenv.config();
 
@@ -15,7 +16,9 @@ export default defineConfig({
   ],
 
   use: {
-    baseURL: process.env.BASE_URL ?? 'https://www.hud.io',
+    // site.config.json is the source of truth for the site under test;
+    // BASE_URL in .env overrides it for local/staging runs.
+    baseURL: process.env.BASE_URL ?? siteConfig.site.baseUrl,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',

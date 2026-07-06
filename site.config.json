@@ -1,0 +1,21 @@
+{
+  "site": {
+    "name": "Hud.io",
+    "baseUrl": "https://www.hud.io"
+  },
+  "pages": {
+    "home": "/",
+    "blog": "/blog/",
+    "about": "/about-us/",
+    "bookADemo": "/book-a-demo/",
+    "contact": "/contact-us/",
+    "careers": "/careers/",
+    "glossary": "/glossary/",
+    "questions": "/questions/",
+    "thankYou": "/thank-you/"
+  },
+  "external": {
+    "docs": "https://docs.hud.io/",
+    "app": "https://app.hud.io/"
+  }
+}

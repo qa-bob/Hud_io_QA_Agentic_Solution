@@ -6,20 +6,20 @@ test.describe('Blog Page', () => {
     await blogPage.goto();
   });
 
-  test('should load the blog page with a 200 status', async ({ page }) => {
+  test('should load the blog page with a 200 status', { tag: '@smoke' }, async ({ page }) => {
     const response = await page.goto(URLS.BLOG);
     expect(response?.status()).toBe(200);
   });
 
-  test('should display the correct page title', async ({ page }) => {
+  test('should display the correct page title', { tag: '@smoke' }, async ({ page }) => {
     await expect(page).toHaveTitle(/Hud/i);
   });
 
-  test('should have the blog URL', async ({ page }) => {
+  test('should have the blog URL', { tag: '@functional' }, async ({ page }) => {
     await expect(page).toHaveURL(new RegExp(URLS.BLOG));
   });
 
-  test('should display the main content area', async ({ blogPage }) => {
+  test('should display the main content area', { tag: '@functional' }, async ({ blogPage }) => {
     await expect(blogPage.bodyContent).toBeVisible();
   });
 });

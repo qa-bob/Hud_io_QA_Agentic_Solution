@@ -51,8 +51,10 @@ The framework is designed to be maintained and extended by both human engineers 
 - Test names follow the pattern: `'should <action> when <condition>'`
 - No raw locators in test files — always use Page Object properties/methods.
 - No `page.waitForTimeout()` — use Playwright auto-waiting and `expect()`.
-- No hardcoded credentials — use `process.env.TEST_USER_EMAIL` / `process.env.TEST_USER_PASSWORD`.
+- No hardcoded page paths — read them from `site.config.json` via `utils/urls.ts`.
 - Tests must be independent and atomic.
+- Every test or `describe` block carries exactly one tag: `@smoke`, `@functional`, or `@regression`.
+- Never submit a form, log in, register, or sign up against the live site — see Testing Constraints in `AGENTS.md`.
 
 ### Page Objects
 

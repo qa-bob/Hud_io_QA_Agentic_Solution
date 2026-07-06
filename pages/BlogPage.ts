@@ -9,6 +9,7 @@ export class BlogPage extends BasePage {
   readonly pageHeading: Locator;
   readonly articleList: Locator;
   readonly firstArticle: Locator;
+  readonly bodyContent: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -17,6 +18,7 @@ export class BlogPage extends BasePage {
     this.pageHeading = page.getByRole('heading').first();
     this.articleList = page.locator('article, .post, .blog-post, .entry').first();
     this.firstArticle = page.locator('article').first();
+    this.bodyContent = page.locator('main');
   }
 
   async goto(): Promise<void> {

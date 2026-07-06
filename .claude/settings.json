@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install)",
+      "Bash(npm ci)",
+      "Bash(npm run *)",
+      "Bash(npx playwright *)",
+      "Bash(npx tsc *)",
+      "Bash(git status)",
+      "Bash(git diff *)",
+      "Bash(git log *)"
+    ],
+    "ask": [
+      "Edit(playwright.config.ts)",
+      "Edit(.github/workflows/**)",
+      "Edit(package.json)"
+    ],
+    "deny": [
+      "Read(.env)",
+      "Edit(.env)"
+    ]
+  }
+}

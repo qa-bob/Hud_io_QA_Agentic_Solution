@@ -21,32 +21,27 @@ These instructions apply when writing or modifying Playwright test spec files (`
 - Use `test.describe.configure({ mode: 'parallel' })` for suites that can run in parallel.
 - Use `test.skip()`, `test.fixme()`, or `test.fail()` annotations appropriately.
 - Chain `await` correctly — never fire-and-forget Playwright calls.
+- Tag every test or `describe` block with exactly one of `@smoke`, `@functional`, `@regression` — see "Test Strategy" in `AGENTS.md`.
+- Never submit a form or attempt to register/log in against the live site — see "Testing Constraints" in `AGENTS.md`.
 
 ## Example Test Structure
 
 ```ts
-import { test, expect } from '@playwright/test';
-import { LoginPage } from '../pages/LoginPage';
+import { test, expect } from '../fixtures/base.fixture';
+import { URLS } from '../utils/urls';
 
-test.describe('Login Feature', () => {
-  let loginPage: LoginPage;
-
-  test.beforeEach(async ({ page }) => {
-    loginPage = new LoginPage(page);
-    await loginPage.goto();
+test.describe('Careers Page', () => {
+  test.beforeEach(async ({ careersPage }) => {
+    await careersPage.goto();
   });
 
-  test('should log in successfully with valid credentials', async () => {
-    await loginPage.login(
-      process.env.TEST_USER_EMAIL!,
-      process.env.TEST_USER_PASSWORD!
-    );
-    await expect(loginPage.dashboardHeading).toBeVisible();
+  test('should load the careers page with a 200 status', { tag: '@smoke' }, async ({ page }) => {
+    const response = await page.goto(URLS.CAREERS);
+    expect(response?.status()).toBe(200);
   });
 
-  test('should show an error with invalid credentials', async () => {
-    await loginPage.login('wrong@email.com', 'wrongpassword');
-    await expect(loginPage.errorMessage).toBeVisible();
+  test('should display a page heading', { tag: '@functional' }, async ({ careersPage }) => {
+    await expect(careersPage.pageHeading).toBeVisible();
   });
 });
 ```

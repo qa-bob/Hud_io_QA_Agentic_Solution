@@ -6,37 +6,37 @@ test.describe('Navigation — Desktop', () => {
     await homePage.goto();
   });
 
-  test('should display the Hud logo in the header', async ({ homePage }) => {
+  test('should display the Hud logo in the header', { tag: '@smoke' }, async ({ homePage }) => {
     await expect(homePage.header.logo).toBeVisible();
   });
 
-  test('should navigate to the Blog page via the header nav link', async ({ page, homePage }) => {
+  test('should navigate to the Blog page via the header nav link', { tag: '@functional' }, async ({ page, homePage }) => {
     await homePage.header.clickBlog();
     await expect(page).toHaveURL(new RegExp(URLS.BLOG));
   });
 
-  test('should navigate to the About Us page via the header nav link', async ({ page, homePage }) => {
+  test('should navigate to the About Us page via the header nav link', { tag: '@functional' }, async ({ page, homePage }) => {
     await homePage.header.clickAbout();
     await expect(page).toHaveURL(new RegExp(URLS.ABOUT));
   });
 
-  test('should have the Docs link pointing to docs.hud.io', async ({ homePage }) => {
+  test('should have the Docs link pointing to docs.hud.io', { tag: '@functional' }, async ({ homePage }) => {
     const href = await homePage.header.getDocsHref();
     expect(href).toContain('docs.hud.io');
   });
 
-  test('should have the Log in link pointing to app.hud.io', async ({ homePage }) => {
+  test('should have the Log in link pointing to app.hud.io', { tag: '@functional' }, async ({ homePage }) => {
     const href = await homePage.header.getLoginHref();
     expect(href).toContain('app.hud.io');
   });
 
-  test('should navigate to the Book a Demo page via the header CTA', async ({ page, homePage }) => {
+  test('should navigate to the Book a Demo page via the header CTA', { tag: '@smoke' }, async ({ page, homePage }) => {
     await homePage.header.clickBookADemo();
     await expect(page).toHaveURL(new RegExp(URLS.BOOK_A_DEMO));
   });
 });
 
-test.describe('Navigation — Mobile Menu', () => {
+test.describe('Navigation — Mobile Menu', { tag: '@regression' }, () => {
   test.use({ viewport: { width: 375, height: 812 } });
 
   test.beforeEach(async ({ homePage }) => {

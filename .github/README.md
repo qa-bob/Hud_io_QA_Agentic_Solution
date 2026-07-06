@@ -22,43 +22,48 @@ This document explains the purpose and contents of every file and directory in t
 
 ## Agents
 
-**What:** Instructions that tell AI agents how to understand and work in this repository.
+**What:** Instructions that tell AI agents how to understand and work in this repository. This repo supports two agent tool ecosystems side by side: GitHub Copilot (this folder + root `AGENTS.md`) and Claude Code (root `CLAUDE.md` + `.claude/`).
 
 **Files:**
-- [`../AGENTS.md`](../AGENTS.md) — Root-level agent instructions read by Copilot CLI, cloud agents, and other AI tools. This is the primary file.
+- [`../AGENTS.md`](../AGENTS.md) — Root-level, tool-agnostic agent instructions following the [AGENTS.md spec](https://agents.md). Read by Copilot CLI, cloud agents, and (via import) Claude Code.
 - [`copilot-instructions.md`](./copilot-instructions.md) — Repo-wide Copilot instructions automatically injected into every Copilot prompt in this repository.
+- [`../CLAUDE.md`](../CLAUDE.md) — Claude Code's entry point. It imports `AGENTS.md` with `@AGENTS.md` (per [Claude Code's memory docs](https://code.claude.com/docs/en/memory#agentsmd)) and adds Claude-specific pointers.
+- [`../.claude/agents/`](../.claude/agents/) — Claude Code project subagents (`page-object-scaffolder`, `qa-test-writer`, `qa-test-reviewer`). Each is a markdown file with YAML frontmatter (`name`, `description`, `tools`, `model`) — see [Claude Code subagent docs](https://code.claude.com/docs/en/sub-agents).
+- [`../.claude/settings.json`](../.claude/settings.json) — Claude Code permissions: allows routine `npm`/`playwright`/`tsc` commands, requires confirmation before editing `playwright.config.ts`, `package.json`, or CI workflows, and blocks reading/editing `.env`.
 
 **How agents use these files:**
-- `AGENTS.md` is the primary agent instruction file per the [AGENTS.md spec](https://github.com/agentsmd/agents.md). It is read by Copilot CLI and cloud agents.
+- `AGENTS.md` is the shared source of truth for conventions — both tool ecosystems point back to it rather than duplicating rules.
 - `copilot-instructions.md` is automatically injected into every Copilot prompt (IDE, CLI, code review, cloud agent).
-- Both files complement each other and are both used when present.
+- `CLAUDE.md` is read by Claude Code at the start of every session; because it imports `AGENTS.md`, editing `AGENTS.md` updates both tools at once.
 
 **Guidelines for updating:**
 - Keep instructions concise and actionable — not task-specific.
 - Focus on architecture patterns, conventions, and how to build/run/test.
 - Do not include credentials, environment-specific values, or task-specific steps.
+- Prefer editing `AGENTS.md` for anything tool-agnostic; only touch `CLAUDE.md` or `copilot-instructions.md` for genuinely tool-specific behavior.
 
 ---
 
 ## Skills
 
-**What:** Specialized capabilities that augment Copilot's default behavior.
+**What:** Specialized capabilities that augment an agent's default behavior.
 
 **Files:**
-- [`../Skills.md`](../Skills.md) — Documentation of all skills relevant to this project.
+- [`../Skills.md`](../Skills.md) — Documentation of all skills relevant to this project, for both tool ecosystems.
+- [`../.claude/skills/`](../.claude/skills/) — Claude Code's real, invocable skills (`new-page-object`, `new-test-suite`, `run-tests`), each a `SKILL.md` with YAML frontmatter. See [Claude Code skills docs](https://code.claude.com/docs/en/skills).
 
 **Built-in Copilot CLI skills are managed via:**
 ```bash
 /skills
 ```
 
-**Path-specific instructions** (in `instructions/`) act as focused skill injections for specific file types — they add targeted context when Copilot is working on files that match a given glob pattern.
+**Path-specific instructions** (in `instructions/`) act as focused skill injections for specific file types — they add targeted context when an agent is working on files that match a given glob pattern. Copilot reads these via the `applyTo` frontmatter; Claude Code reads the same conventions through `AGENTS.md` and the subagent definitions in `.claude/agents/`.
 
 | File | Applies To | Purpose |
 |---|---|---|
 | `instructions/playwright.instructions.md` | `tests/**/*.spec.ts` | Playwright test authoring conventions |
 | `instructions/pom.instructions.md` | `pages/**/*.ts` | Page Object Model conventions |
-| `instructions/testing.instructions.md` | `**/*.spec.ts`, `fixtures/**` | General testing standards |
+| `instructions/testing.instructions.md` | `**/*.spec.ts`, `fixtures/**` | General testing standards, site.config.json usage, test tagging |
 
 ---
 
@@ -121,9 +126,10 @@ A `CODEOWNERS` file can be added to `.github/CODEOWNERS` to automatically assign
 
 ### AI Agent Rules
 
-- Agents must follow `AGENTS.md` and `copilot-instructions.md` at all times.
-- Agents must not modify `.env`, workflow files, or `playwright.config.ts` without explicit human approval.
+- Agents must follow `AGENTS.md` (and, for Copilot, `copilot-instructions.md`) at all times.
+- Agents must not modify `.env`, workflow files, or `playwright.config.ts` without explicit human approval. For Claude Code this is technically enforced via `ask` rules in `.claude/settings.json`, not just documented.
 - Agents must run the test suite before opening a PR.
+- Agents must never register, sign up, log in, or submit a lead-generation form against the live site — see "Testing Constraints" in `AGENTS.md`.
 
 ---
 
@@ -134,11 +140,16 @@ A `CODEOWNERS` file can be added to `.github/CODEOWNERS` to automatically assign
 | File / Location | Purpose |
 |---|---|
 | [`../README.md`](../README.md) | Primary repo documentation — purpose, setup, rules |
-| [`../AGENTS.md`](../AGENTS.md) | Agent instructions for AI tools |
-| [`../Skills.md`](../Skills.md) | Skills reference for Copilot and contributors |
+| [`../AGENTS.md`](../AGENTS.md) | Tool-agnostic agent instructions (spec: [agents.md](https://agents.md)) |
+| [`../CLAUDE.md`](../CLAUDE.md) | Claude Code entry point — imports `AGENTS.md` |
+| [`../Skills.md`](../Skills.md) | Skills reference for both Copilot and Claude Code |
+| [`../site.config.json`](../site.config.json) | Source of truth for the base URL and page paths under test |
 | [`.github/README.md`](./) | This file — .github folder guide |
 | [`.github/copilot-instructions.md`](./copilot-instructions.md) | Copilot repo-wide instructions |
 | [`.github/instructions/`](./instructions/) | Path-specific Copilot instructions |
+| [`../.claude/agents/`](../.claude/agents/) | Claude Code project subagents |
+| [`../.claude/skills/`](../.claude/skills/) | Claude Code project skills |
+| [`../.claude/settings.json`](../.claude/settings.json) | Claude Code permissions |
 
 **Documentation standards:**
 - All `.md` files use standard Markdown formatting.
@@ -147,11 +158,16 @@ A `CODEOWNERS` file can be added to `.github/CODEOWNERS` to automatically assign
 
 ---
 
-## Quick Reference: Copilot Instruction Files
+## Quick Reference: Agent Instruction Files
 
 | File | Scope | Read By |
 |---|---|---|
+| `AGENTS.md` (root) | All agent sessions | Copilot CLI, cloud agents, Claude Code (via import), other AI tools |
+| `CLAUDE.md` (root) | All Claude Code sessions | Claude Code only |
 | `.github/copilot-instructions.md` | All prompts in this repo | Copilot IDE, CLI, code review, cloud agent |
-| `AGENTS.md` (root) | All agent sessions | Copilot CLI, cloud agents, other AI tools |
 | `.github/instructions/*.instructions.md` | Path-matched files only | Copilot IDE, CLI, cloud agent |
+| `.claude/agents/*.md` | Delegated subagent tasks | Claude Code only |
+| `.claude/skills/*/SKILL.md` | Invoked via `/name` or auto-loaded | Claude Code only |
+| `.claude/settings.json` | Every Claude Code tool call | Claude Code only |
 | `$HOME/.copilot/copilot-instructions.md` | Local machine only | Copilot CLI (personal overrides) |
+| `$HOME/.claude/CLAUDE.md` | Local machine, all projects | Claude Code (personal overrides) |

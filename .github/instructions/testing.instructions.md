@@ -18,42 +18,35 @@ These instructions apply to all test files and fixture files across the reposito
 - Shared setup logic that is used across multiple test files belongs in `fixtures/`.
 - Define custom fixtures using Playwright's `test.extend<{}>()` pattern.
 - Export the extended `test` and `expect` from the fixture file for use in specs.
+- See `fixtures/base.fixture.ts` for this repo's actual pattern: one fixture per Page Object, injected by name.
 
 ```ts
-// fixtures/auth.fixture.ts
-import { test as base, expect } from '@playwright/test';
-import { LoginPage } from '../pages/LoginPage';
+// fixtures/base.fixture.ts (excerpt)
+import { test as base } from '@playwright/test';
+import { HomePage } from '../pages/HomePage';
 
-type AuthFixtures = {
-  loggedInPage: LoginPage;
+type PageFixtures = {
+  homePage: HomePage;
 };
 
-export const test = base.extend<AuthFixtures>({
-  loggedInPage: async ({ page }, use) => {
-    const loginPage = new LoginPage(page);
-    await loginPage.goto();
-    await loginPage.login(
-      process.env.TEST_USER_EMAIL!,
-      process.env.TEST_USER_PASSWORD!
-    );
-    await use(loginPage);
+export const test = base.extend<PageFixtures>({
+  homePage: async ({ page }, use) => {
+    await use(new HomePage(page));
   },
 });
 
-export { expect };
+export { expect } from '@playwright/test';
 ```
 
-## Environment Variables
+## Environment Variables and Site Config
 
-Required environment variables — never hardcode these:
+- `site.config.json` (repo root) is the source of truth for the base URL and every page path. Read paths via `utils/urls.ts` (`URLS.*`) — never hardcode a path string in a test or Page Object.
+- `BASE_URL` (optional, in `.env`) overrides `site.config.json`'s `site.baseUrl` for local or staging runs. Access it via `playwright.config.ts`, not directly in tests.
+- This suite has no login, signup, or account state — there is no `TEST_USER_EMAIL`/`TEST_USER_PASSWORD` to configure. See the Testing Constraints in `AGENTS.md` before adding any test that touches a form.
 
-| Variable | Usage |
-|---|---|
-| `BASE_URL` | Base URL for navigation (set in `playwright.config.ts`) |
-| `TEST_USER_EMAIL` | Test account email |
-| `TEST_USER_PASSWORD` | Test account password |
+## Test Tagging
 
-Access them safely: `process.env.TEST_USER_EMAIL!`
+Every test or `test.describe()` block carries exactly one tag: `@smoke`, `@functional`, or `@regression`. See the "Test Strategy" section in `AGENTS.md` for what belongs in each tier, and run `npm run test:smoke` / `test:functional` / `test:regression` to execute one tier at a time.
 
 ## Assertions
 

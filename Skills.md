@@ -1,10 +1,32 @@
-# Skills.md — GitHub Copilot Skills Reference
+# Skills.md — Skills Reference
 
-This file documents the **skills** relevant to contributing to and extending this repository. It serves as a reference for both human contributors and AI agents (GitHub Copilot) to understand what capabilities and domain knowledge are required or available.
+This file documents the **skills** relevant to contributing to and extending this repository. It serves as a reference for both human contributors and AI agents (GitHub Copilot, Claude Code) to understand what capabilities and domain knowledge are required or available.
+
+For Claude Code, this file is the human-readable index. The actual invocable skills live as real `SKILL.md` files under `.claude/skills/` — see [Claude Code Skills (this repo)](#claude-code-skills-this-repo) below. For GitHub Copilot CLI, skills are invoked and managed via `/skills`.
 
 ---
 
-## What Are Skills?
+## Claude Code Skills (this repo)
+
+These are real, invocable skills under `.claude/skills/`. Type `/<name>` in Claude Code to run one directly, or describe the task and Claude will invoke it automatically when relevant.
+
+| Skill | Location | What it does |
+|---|---|---|
+| `/new-page-object` | `.claude/skills/new-page-object/SKILL.md` | Scaffolds a new Page Object class for a hud.io page that doesn't have one yet, and registers it in `fixtures/base.fixture.ts`. Runs in the `page-object-scaffolder` subagent. |
+| `/new-test-suite` | `.claude/skills/new-test-suite/SKILL.md` | Writes a new tagged (`@smoke`/`@functional`/`@regression`) test spec for a page or feature. Runs in the `qa-test-writer` subagent. |
+| `/run-tests` | `.claude/skills/run-tests/SKILL.md` | Runs the suite scoped to `smoke`, `functional`, `regression`, or `all` and summarizes results. User-invoked only (`disable-model-invocation: true`) since it executes against the live site. |
+
+Claude Code also has three project subagents in `.claude/agents/` that these skills delegate to, and that can be invoked directly by name:
+
+| Agent | Purpose |
+|---|---|
+| `page-object-scaffolder` | Creates Page Object classes following this repo's POM/OOP conventions. |
+| `qa-test-writer` | Writes and tags Playwright specs. |
+| `qa-test-reviewer` | Read-only review of test/Page Object changes against `AGENTS.md` conventions before a PR. |
+
+---
+
+## What Are Skills? (GitHub Copilot)
 
 In the context of GitHub Copilot CLI, **skills** are specialized capabilities that can be invoked to help complete tasks more effectively. You can manage skills via:
 

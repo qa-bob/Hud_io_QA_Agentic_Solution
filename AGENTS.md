@@ -1,6 +1,8 @@
-# AGENTS.md — GitHub Copilot Agent Instructions
+# AGENTS.md — Agent Instructions
 
-This file provides authoritative instructions for all AI agents (GitHub Copilot, cloud agents, CLI agents) operating in this repository. All agents must follow these instructions when reading, writing, or reasoning about code in this project.
+This file provides authoritative instructions for all AI agents (GitHub Copilot, Claude Code, cloud agents, CLI agents) operating in this repository, following the cross-tool [AGENTS.md spec](https://agents.md). All agents must follow these instructions when reading, writing, or reasoning about code in this project.
+
+Claude Code specifically reads `CLAUDE.md` at the repo root, which imports this file (`@AGENTS.md`) and adds a few Claude-specific pointers (subagents in `.claude/agents/`, skills in `.claude/skills/`). See `.github/README.md` for the full breakdown of which tool reads which file.
 
 ---
 
@@ -21,9 +23,12 @@ This file provides authoritative instructions for all AI agents (GitHub Copilot,
 ├── pages/          # Page Object classes (one file per page/component)
 ├── tests/          # Playwright test spec files
 ├── fixtures/       # Shared Playwright fixtures and test setup/teardown
-├── utils/          # Shared helper utilities (e.g., data generators, API helpers)
+├── utils/          # Shared helper utilities (URLS derived from site.config.json)
+├── site.config.json       # Source of truth: base URL + page paths for the site under test
 ├── playwright.config.ts   # Playwright configuration — browsers, baseURL, timeouts
 ├── .env            # Local environment variables (NOT committed)
+├── CLAUDE.md       # Claude Code entry point (imports this file)
+├── .claude/        # Claude Code agents, skills, and permission settings
 └── .github/        # Copilot instructions, CI workflows
 ```
 
@@ -67,30 +72,52 @@ export class ExamplePage extends BasePage {
 2. **No raw locators in test files** — always use Page Object methods and properties.
 3. **Test naming:** `test('should <action> when <condition>', ...)`
 4. **Imports:** Always import the relevant Page Object(s), not `page` directly.
-5. **No hardcoded URLs** — use `baseURL` from `playwright.config.ts` and Page Objects for navigation.
-6. **No hardcoded credentials** — use environment variables (`process.env.TEST_USER_EMAIL`, etc.).
+5. **No hardcoded URLs** — page paths come from `site.config.json` via `utils/urls.ts` (`URLS.*`); `baseURL` in `playwright.config.ts` handles the host.
+6. **No hardcoded credentials** — if a future test ever needs one, use environment variables. Today this suite has no login/account state at all (see Testing Constraints below).
 7. **No `page.waitForTimeout()`** — rely on Playwright's auto-waiting and `expect()`.
 8. **Tests must be independent** — do not depend on execution order.
 9. **One assertion theme per test** — keep tests atomic and focused.
+10. **Exactly one tag per test or `describe` block** — `@smoke`, `@functional`, or `@regression`. See Test Strategy below.
 
 ### Test File Template
 
 ```ts
-import { test, expect } from '@playwright/test';
-import { LoginPage } from '../pages/LoginPage';
+import { test, expect } from '../fixtures/base.fixture';
+import { URLS } from '../utils/urls';
 
-test.describe('Login', () => {
-  test('should log in successfully with valid credentials', async ({ page }) => {
-    const loginPage = new LoginPage(page);
-    await loginPage.goto();
-    await loginPage.login(
-      process.env.TEST_USER_EMAIL!,
-      process.env.TEST_USER_PASSWORD!
-    );
-    await expect(loginPage.dashboardHeading).toBeVisible();
+test.describe('Careers Page', () => {
+  test.beforeEach(async ({ careersPage }) => {
+    await careersPage.goto();
+  });
+
+  test('should load the careers page with a 200 status', { tag: '@smoke' }, async ({ page }) => {
+    const response = await page.goto(URLS.CAREERS);
+    expect(response?.status()).toBe(200);
+  });
+
+  test('should display a page heading', { tag: '@functional' }, async ({ careersPage }) => {
+    await expect(careersPage.pageHeading).toBeVisible();
   });
 });
 ```
+
+## Test Strategy
+
+Every test carries exactly one tag, applied via Playwright's `{ tag: '@name' }` option on `test()` or `test.describe()`:
+
+| Tag | Scope | Run when |
+|---|---|---|
+| `@smoke` | Critical path only: page loads (200 + correct title), primary heading/CTA visible. Few, fast tests per page. | Every push (`npm run test:smoke`) |
+| `@functional` | Feature-level behavior: correct URL after navigation, secondary content renders, nav links/hrefs are correct. | Every PR (`npm run test:functional`) |
+| `@regression` | Broader/secondary coverage: alternate viewports, cross-page consistency, less-critical UI states. | Before release (`npm run test:regression`) |
+
+`npm test` runs everything, untagged.
+
+## Testing Constraints
+
+- **Never register, sign up, log in, or submit a lead-generation form** (Book a Demo, Contact) against the live site. Assert that forms/widgets render — do not submit them.
+- This is a read-only test suite: no test should create, modify, or delete data on hud.io.
+- There is no test user account and no `TEST_USER_EMAIL`/`TEST_USER_PASSWORD` — if a future feature genuinely requires authenticated coverage, raise it with a human before adding credentials.
 
 ---
 
@@ -129,15 +156,10 @@ npx playwright show-report
 
 ---
 
-## Environment Variables
+## Site Config and Environment Variables
 
-Tests rely on the following environment variables. These must be set in `.env` (local) or as CI secrets:
-
-| Variable | Description |
-|---|---|
-| `BASE_URL` | Base URL of the hud.io app under test |
-| `TEST_USER_EMAIL` | Email address of the test user account |
-| `TEST_USER_PASSWORD` | Password for the test user account |
+- `site.config.json` (repo root) is the single source of truth for the base URL and every page path (`URLS.*` in `utils/urls.ts` reads from it). Update paths there when hud.io's site structure changes — never hardcode a path in a Page Object or test.
+- `BASE_URL` (optional, in `.env` locally or as a CI secret) overrides `site.config.json`'s `site.baseUrl` for staging/preview runs.
 
 ---
 

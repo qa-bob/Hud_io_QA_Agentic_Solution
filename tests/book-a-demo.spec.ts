@@ -6,24 +6,24 @@ test.describe('Book a Demo Page', () => {
     await bookADemoPage.goto();
   });
 
-  test('should load the book-a-demo page with a 200 status', async ({ page }) => {
+  test('should load the book-a-demo page with a 200 status', { tag: '@smoke' }, async ({ page }) => {
     const response = await page.goto(URLS.BOOK_A_DEMO);
     expect(response?.status()).toBe(200);
   });
 
-  test('should display the correct page title', async ({ page }) => {
+  test('should display the correct page title', { tag: '@smoke' }, async ({ page }) => {
     await expect(page).toHaveTitle(/Book a demo|Hud/i);
   });
 
-  test('should have the book-a-demo URL', async ({ page }) => {
+  test('should have the book-a-demo URL', { tag: '@functional' }, async ({ page }) => {
     await expect(page).toHaveURL(new RegExp(URLS.BOOK_A_DEMO));
   });
 
-  test('should display a page heading', async ({ bookADemoPage }) => {
+  test('should display a page heading', { tag: '@functional' }, async ({ bookADemoPage }) => {
     await expect(bookADemoPage.pageHeading).toBeVisible();
   });
 
-  test('should display a form or booking widget', async ({ bookADemoPage }) => {
+  test('should display a form or booking widget', { tag: '@smoke' }, async ({ bookADemoPage }) => {
     await expect(bookADemoPage.formOrWidget).toBeVisible({ timeout: 10_000 });
   });
 
